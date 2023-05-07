@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import EmailStr
-from ..models import AssistantBase, UserCreate
+from ..models import AssistantBase, UserRequest
 from .. import schemas, utils
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -13,9 +13,9 @@ router = APIRouter(
     tags=['Assistants']
 )
 
-@router.get("")
-async def get_assistants(db: Session = Depends(get_db)):
-    assistants = db.query(schemas.Assistant).all()
+@router.get("/{event_id}")
+async def get_assistants_by_event_id(event_id: int, db: Session = Depends(get_db)):
+    assistants = db.query(schemas.Assistant).filter(schemas.Assistant.event_id == event_id).all()
     return assistants
 
 @router.post("", status_code=status.HTTP_201_CREATED)

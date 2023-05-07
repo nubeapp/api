@@ -12,9 +12,8 @@ class UserBase(BaseModel):
     class Config:
         orm_mode = True
 
-class UserCreate(UserBase):
+class UserRequest(UserBase):
     password: str
-    profile_image: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -55,6 +54,8 @@ class CodeBase(BaseModel):
     class Config:
         orm_mode = True
 
+class CodeRequest(CodeBase):
+    pass
 
 class CodeResponse(CodeBase):
     created_at: datetime
@@ -66,18 +67,50 @@ class CodeResponse(CodeBase):
 
 # region EmailData
 
-class EmailData(BaseModel):
+class EmailDataBase(BaseModel):
     email: EmailStr
     name: str
     code: str
 
+class EmailDataRequest(EmailDataBase):
+    pass
+
+class EmailDataResponse(EmailDataBase):
+    pass
+
+# endregion
+
+# region Organization
+
+class OrganizationBase(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        orm_mode = True
+
+class OrganizationRequest(OrganizationBase):
+    pass
+
+class OrganizationResponse(OrganizationBase):
+    pass
 # endregion
 
 # region Event
 
 class EventBase(BaseModel):
     title: str
-    completed: Optional[bool] = False
+    date: datetime
+    time: str
+    venue: str    
+
+    class Config:
+        orm_mode = True
+
+class EventRequest(EventBase):
+    ticket_limit: int
+    ticket_available: int
+    organization_id: int
 
     class Config:
         orm_mode = True
@@ -85,8 +118,7 @@ class EventBase(BaseModel):
 class EventResponse(EventBase):
     id: int
     created_at: datetime
-    owner_id: int
-    owner: UserBase
+    organization: OrganizationRequest
 
     class Config:
         orm_mode = True
@@ -98,6 +130,28 @@ class EventResponse(EventBase):
 class AssistantBase(BaseModel):
     event_id: int
     dir: conint(ge=0, le=1)
+
+    class Config:
+        orm_mode = True
+
+# endregion
+
+# region Ticket
+
+class TicketBase(BaseModel):
+    reference: str
+    price: float 
+
+    class Config:
+        orm_mode = True
+
+class TicketRequest(TicketBase):
+    event_id: int
+    organization_id: int
+
+class TicketResponse(TicketBase):
+    id: int
+    event: EventResponse
 
     class Config:
         orm_mode = True

@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import EmailStr
-from ..models import UserResponse, UserCreate
+from ..models import UserResponse, UserRequest
 from .. import schemas, utils
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -26,7 +26,7 @@ async def get_user_by_email(email: EmailStr, db: Session = Depends(get_db)):
     return user
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: UserRequest, db: Session = Depends(get_db)):
 
     # Hash the password: user.password
     hashed_password = utils.hash(user.password)
@@ -39,7 +39,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @router.put("/{email}", response_model=UserResponse)
-async def update_user(email: EmailStr,  updated_user: UserCreate, db: Session = Depends(get_db)):
+async def update_user(email: EmailStr,  updated_user: UserRequest, db: Session = Depends(get_db)):
     user = db.query(schemas.User).filter(schemas.User.email == email)
     if not user.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

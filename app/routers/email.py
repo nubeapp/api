@@ -1,7 +1,7 @@
 import requests
 from fastapi import APIRouter, Request
 
-from ..models import EmailData
+from ..models import EmailDataRequest
 
 
 router = APIRouter(
@@ -16,7 +16,7 @@ PUBLIC_KEY = 'm6_PyyRTyKWUZmEUA'
 PRIVATE_KEY = 'ZIyAmgPSEegPkyc5Wg_5x'
 
 @router.post("/send")
-async def send_code(email_data: EmailData):
+async def send_code(email_data: EmailDataRequest):
     email = email_data.email
     name = email_data.name
     code = email_data.code

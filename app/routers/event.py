@@ -1,7 +1,7 @@
 from typing import List
 
 from app.oauth2 import get_current_user
-from ..models import EventBase, EventResponse
+from ..models import EventRequest, EventResponse
 from .. import schemas
 from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
@@ -17,7 +17,6 @@ async def get_events(db: Session = Depends(get_db)):
     events = db.query(schemas.Event).order_by(schemas.Event.created_at).all()
     return events
 
-
 @router.get("/event/{id}", response_model=EventResponse)
 async def get_event_by_id(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     event = db.query(schemas.Event).filter(schemas.Event.id == id).first()
@@ -25,27 +24,27 @@ async def get_event_by_id(id: int, db: Session = Depends(get_db), current_user: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
     return event
 
-@router.get("/{owner_id}", response_model=List[EventResponse])
-async def get_events_by_owner_id(owner_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    events = db.query(schemas.Event).filter(schemas.Event.owner_id == owner_id).all()
+@router.get("/{organization_id}", response_model=List[EventResponse])
+async def get_events_by_organization_id(organization_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    events = db.query(schemas.Event).filter(schemas.Event.organization_id == organization_id).all()
     if len(events) <= 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for owner_id {owner_id}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for organization_id {organization_id}")
     return events
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=EventResponse)
-async def create_event(event: EventBase, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    new_event = schemas.Event(owner_id=current_user.id, **event.dict())
+async def create_event(event: EventRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    new_event = schemas.Event(**event.dict())
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
     return new_event
 
 @router.put("/{id}", response_model=EventResponse)
-async def update_event_by_id(id: int, updated_event: EventBase, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+async def update_event_by_id(id: int, updated_event: EventRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     event = db.query(schemas.Event).filter(schemas.Event.id == id)
     if not event.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
-    if event.first().owner_id != current_user.id:
+    if event.first().organization_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     event.update(updated_event.dict(), synchronize_session=False)
     db.commit()
@@ -56,19 +55,19 @@ async def delete_event_by_id(id: int, db: Session = Depends(get_db), current_use
     event = db.query(schemas.Event).filter(schemas.Event.id == id).first()
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
-    if event.owner_id != current_user.id:
+    if event.organization_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     db.delete(event)
     db.commit()
 
-@router.delete("/{owner_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_events_by_owner_id(owner_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    events = db.query(schemas.Event).filter(schemas.Event.owner_id == owner_id).all()
+@router.delete("/{organization_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_events_by_organization_id(organization_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    events = db.query(schemas.Event).filter(schemas.Event.organization_id == organization_id).all()
     for event in events:
-        if event.owner_id != current_user.id:
+        if event.organization_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     if not events:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No events found for owner_id {owner_id}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No events found for organization_id {organization_id}")
     for event in events:
         db.delete(event)
     db.commit()
