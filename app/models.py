@@ -125,17 +125,6 @@ class EventResponse(EventBase):
 
 # endregion
 
-# region Assistant
-
-class AssistantBase(BaseModel):
-    event_id: int
-    dir: conint(ge=0, le=1)
-
-    class Config:
-        orm_mode = True
-
-# endregion
-
 # region Ticket
 
 class TicketBase(BaseModel):
@@ -147,7 +136,6 @@ class TicketBase(BaseModel):
 
 class TicketRequest(TicketBase):
     event_id: int
-    organization_id: int
 
 class TicketResponse(TicketBase):
     id: int
@@ -157,3 +145,29 @@ class TicketResponse(TicketBase):
         orm_mode = True
 
 # endregion
+
+# region Assistant
+
+class AssistantBase(BaseModel):
+    ticket_id: int
+
+    class Config:
+        orm_mode = True
+
+class AssistantRequest(AssistantBase):
+    pass
+
+class AssistantResponse(AssistantBase):
+    ticket: TicketResponse
+
+    class Config:
+        orm_mode = True
+
+# endregion
+
+class AssistantTicketResponse(BaseModel):
+    user: UserResponse
+    ticket: TicketResponse
+
+    class Config:
+        orm_mode = True

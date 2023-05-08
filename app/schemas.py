@@ -53,14 +53,15 @@ class Ticket(Base):
     reference = Column(String, nullable=False)
     price = Column(Double, nullable=False)
     event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
-    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
 
     event = relationship("Event")
-    organization = relationship("Organization")
 
 class Assistant(Base):
     __tablename__ = "assistants"
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
+    ticket_id = Column(Integer, ForeignKey("tickets.id", ondelete="CASCADE"), primary_key=True)
+
+    user = relationship("User")
+    ticket = relationship("Ticket")
 
