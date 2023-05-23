@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, conint
+from pydantic import BaseModel, EmailStr
+from typing import List
+from enum import Enum
 
 # region Users
 
@@ -83,7 +85,6 @@ class EmailDataResponse(EmailDataBase):
 # region Organization
 
 class OrganizationBase(BaseModel):
-    id: int
     name: str
 
     class Config:
@@ -93,7 +94,9 @@ class OrganizationRequest(OrganizationBase):
     pass
 
 class OrganizationResponse(OrganizationBase):
-    pass
+    id: int
+    created_at: datetime
+
 # endregion
 
 # region Event
@@ -109,7 +112,6 @@ class EventBase(BaseModel):
 
 class EventRequest(EventBase):
     ticket_limit: int
-    ticket_available: int
     organization_id: int
 
     class Config:
@@ -118,7 +120,7 @@ class EventRequest(EventBase):
 class EventResponse(EventBase):
     id: int
     created_at: datetime
-    organization: OrganizationRequest
+    organization: OrganizationResponse
 
     class Config:
         orm_mode = True
@@ -127,47 +129,54 @@ class EventResponse(EventBase):
 
 # region Ticket
 
+class TicketStatus(Enum):
+    AVAILABLE = 'AVAILABLE'
+    SOLD = 'SOLD'
+    CANCELED = 'CANCELED'
+
 class TicketBase(BaseModel):
     reference: str
     price: float 
+    status: Optional[TicketStatus] = TicketStatus.AVAILABLE
 
     class Config:
         orm_mode = True
 
 class TicketRequest(TicketBase):
     event_id: int
+    order_id: Optional[int] = None
+    user_id: Optional[int] = None
 
 class TicketResponse(TicketBase):
     id: int
+    created_at: datetime
     event: EventResponse
 
     class Config:
         orm_mode = True
 
+class CreateTicket(BaseModel):
+    event_id: int
+    price: float
+    limit: int
+
 # endregion
 
-# region Assistant
+# region Order
 
-class AssistantBase(BaseModel):
-    ticket_id: int
-
-    class Config:
-        orm_mode = True
-
-class AssistantRequest(AssistantBase):
+class OrderBase(BaseModel):
     pass
 
-class AssistantResponse(AssistantBase):
-    ticket: TicketResponse
+class OrderRequest(OrderBase):
+    event_id: int
+    quantity: int
+
+class OrderResponse(OrderBase):
+    id: int
+    created_at: datetime
+    tickets: List[TicketResponse]
 
     class Config:
         orm_mode = True
 
 # endregion
-
-class AssistantTicketResponse(BaseModel):
-    user: UserResponse
-    ticket: TicketResponse
-
-    class Config:
-        orm_mode = True

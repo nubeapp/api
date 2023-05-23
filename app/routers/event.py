@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get("", response_model=List[EventResponse])
-async def get_events(db: Session = Depends(get_db)):
+async def get_all_events(db: Session = Depends(get_db)):
     events = db.query(schemas.Event).order_by(schemas.Event.created_at).all()
     return events
 
@@ -44,8 +44,6 @@ async def update_event_by_id(id: int, updated_event: EventRequest, db: Session =
     event = db.query(schemas.Event).filter(schemas.Event.id == id)
     if not event.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
-    if event.first().organization_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     event.update(updated_event.dict(), synchronize_session=False)
     db.commit()
     return event.first()
@@ -55,17 +53,12 @@ async def delete_event_by_id(id: int, db: Session = Depends(get_db), current_use
     event = db.query(schemas.Event).filter(schemas.Event.id == id).first()
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
-    if event.organization_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     db.delete(event)
     db.commit()
 
 @router.delete("/{organization_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_events_by_organization_id(organization_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     events = db.query(schemas.Event).filter(schemas.Event.organization_id == organization_id).all()
-    for event in events:
-        if event.organization_id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not authorize to perform this action")
     if not events:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No events found for organization_id {organization_id}")
     for event in events:
