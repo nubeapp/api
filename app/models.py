@@ -95,7 +95,7 @@ class OrganizationRequest(OrganizationBase):
 
 class OrganizationResponse(OrganizationBase):
     id: int
-    created_at: datetime
+    # created_at: datetime
 
 # endregion
 
@@ -119,7 +119,7 @@ class EventRequest(EventBase):
 
 class EventResponse(EventBase):
     id: int
-    created_at: datetime
+    # created_at: datetime
     organization: OrganizationResponse
 
     class Config:
@@ -149,8 +149,15 @@ class TicketRequest(TicketBase):
 
 class TicketResponse(TicketBase):
     id: int
-    created_at: datetime
+    # created_at: datetime
+    # event: EventResponse
+
+    class Config:
+        orm_mode = True
+
+class TicketSummary(BaseModel):
     event: EventResponse
+    tickets: List[TicketResponse]
 
     class Config:
         orm_mode = True
