@@ -181,6 +181,7 @@ class OrderRequest(OrderBase):
 class OrderResponse(OrderBase):
     id: int
     created_at: datetime
+    event: EventResponse
     tickets: List[TicketResponse]
 
     class Config:

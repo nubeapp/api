@@ -79,7 +79,7 @@ async def get_tickets_by_user_id_event_id(event_id: int, db: Session = Depends(g
     event_by_id = await event.get_event_by_id(id=event_id, db=db)
     return TicketSummary(event=event_by_id, tickets=tickets)
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=List[TicketSummary])
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=TicketSummary)
 async def create_tickets(ticket_data: CreateTicket, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     tickets_gen = generate_tickets_by_event(
         event_id=ticket_data.event_id,
@@ -96,9 +96,9 @@ async def create_tickets(ticket_data: CreateTicket, db: Session = Depends(get_db
         db.refresh(new_ticket)
     
     event_by_id = await event.get_event_by_id(id=ticket_data.event_id, db=db)
-    return [TicketSummary(event=event_by_id, tickets=new_tickets)]
+    return TicketSummary(event=event_by_id, tickets=new_tickets)
 
-@router.post("/buy", status_code=status.HTTP_201_CREATED, response_model=List[TicketSummary])
+@router.post("/buy", status_code=status.HTTP_201_CREATED, response_model=TicketSummary)
 async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     try:
         # Check if the event exists
@@ -147,7 +147,7 @@ async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current
             )
             await update_ticket_by_id(ticket_id=ticket.id, updated_ticket=updated_ticket, db=db)
         
-        return [TicketSummary(event=event_db, tickets=tickets)]
+        return TicketSummary(event=event_db, tickets=tickets)
     
     except SQLAlchemyError as error:
         logger.error(error)

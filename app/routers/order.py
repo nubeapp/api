@@ -1,6 +1,6 @@
 from typing import List
 
-from ..models import OrderResponse
+from ..models import OrderResponse, TicketSummary
 from .. import schemas
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -14,9 +14,11 @@ router = APIRouter(
 
 @router.get("", response_model=List[OrderResponse])
 async def get_orders_by_user_id(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    orders = db.query(schemas.Order).filter(schemas.Order.user_id == current_user.id).all()
+    orders: List[OrderResponse] = db.query(schemas.Order).filter(schemas.Order.user_id == current_user.id).all()
     for order in orders:
-        order.tickets = db.query(schemas.Ticket).filter(schemas.Ticket.order_id == order.id).all()
+        tickets = db.query(schemas.Ticket).filter(schemas.Ticket.order_id == order.id).all()
+        order.event = db.query(schemas.Event).filter(schemas.Event.id == tickets[0].event_id).first()
+        order.tickets = tickets  # Assign tickets directly
     return orders
 
 async def create_order(user_id: int,db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
