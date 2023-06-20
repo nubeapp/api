@@ -18,7 +18,7 @@ async def get_orders_by_user_id(db: Session = Depends(get_db), current_user: int
     for order in orders:
         tickets = db.query(schemas.Ticket).filter(schemas.Ticket.order_id == order.id).all()
         order.event = db.query(schemas.Event).filter(schemas.Event.id == tickets[0].event_id).first()
-        order.tickets = tickets  # Assign tickets directly
+        order.tickets = tickets
     return orders
 
 async def create_order(user_id: int,db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):

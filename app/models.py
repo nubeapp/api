@@ -178,11 +178,9 @@ class OrderRequest(OrderBase):
     event_id: int
     quantity: int
 
-class OrderResponse(OrderBase):
+class OrderResponse(TicketSummary):
     id: int
     created_at: datetime
-    event: EventResponse
-    tickets: List[TicketResponse]
 
     class Config:
         orm_mode = True

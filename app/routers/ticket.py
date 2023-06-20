@@ -23,15 +23,19 @@ router = APIRouter(
 TICKET_LIMIT: str = 4
 logger = get_custom_logger(__name__)
 
+from fastapi import Query
+
 @router.get("", response_model=List[TicketSummary])
-async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: int = Depends(get_current_user), limit: int = Query(10, ge=1), offset: int = Query(0, ge=0)):
     ticket_summaries = []
     
     events = (
         db.query(schemas.Event)
         .join(schemas.Ticket)
         .filter(schemas.Ticket.user_id == current_user.id)
-        .distinct()
+        .distinct(schemas.Event.id)
+        .offset(offset)
+        .limit(limit)
         .all()
     )
     
@@ -46,6 +50,7 @@ async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: in
         ticket_summaries.append(TicketSummary(event=event, tickets=tickets))
     
     return ticket_summaries
+
 
 @router.get("/{event_id}", response_model=TicketSummary)
 async def get_tickets_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
