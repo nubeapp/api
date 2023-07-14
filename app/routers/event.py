@@ -24,6 +24,11 @@ async def get_event_by_id(id: int, db: Session = Depends(get_db), current_user: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No event found for id {id}")
     return event
 
+@router.get("/favourites", response_model=List[EventResponse])
+async def get_favourite_events_by_user_id(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    favourite_events = db.query(schemas.Event).join(schemas.Favourite, schemas.Favourite.event_id == schemas.Event.id).filter(schemas.Favourite.user_id == current_user.id).all()
+    return favourite_events
+
 @router.get("/{organization_id}", response_model=List[EventResponse])
 async def get_events_by_organization_id(organization_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     events = db.query(schemas.Event).filter(schemas.Event.organization_id == organization_id).all()

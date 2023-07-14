@@ -1,7 +1,5 @@
 from typing import List
 
-from sqlalchemy import Transaction
-
 from app.oauth2 import get_current_user
 from app.routers import event
 from app.routers.order import create_order
@@ -50,7 +48,6 @@ async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: in
         ticket_summaries.append(TicketSummary(event=event, tickets=tickets))
     
     return ticket_summaries
-
 
 @router.get("/{event_id}", response_model=TicketSummary)
 async def get_tickets_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):

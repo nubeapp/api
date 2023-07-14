@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 from typing import List
 from enum import Enum
 
@@ -36,7 +36,7 @@ class UserResponse(UserBase):
 
 # endregion
 
-# region Tokens
+# region Token
 
 class Token(BaseModel):
     access_token: str
@@ -184,5 +184,13 @@ class OrderResponse(TicketSummary):
 
     class Config:
         orm_mode = True
+
+# endregion
+
+# region Vote
+
+class Vote(BaseModel):
+    event_id: int
+    dir: conint(le=1, ge=0)
 
 # endregion
