@@ -111,7 +111,6 @@ class EventBase(BaseModel):
         orm_mode = True
 
 class EventRequest(EventBase):
-    ticket_limit: int
     organization_id: int
 
     class Config:
@@ -133,6 +132,7 @@ class TicketStatus(Enum):
     AVAILABLE = 'AVAILABLE'
     SOLD = 'SOLD'
     CANCELED = 'CANCELED'
+    VALIDATED = 'VALIDATED'
 
 class TicketBase(BaseModel):
     reference: str
@@ -146,18 +146,26 @@ class TicketRequest(TicketBase):
     event_id: int
     order_id: Optional[int] = None
     user_id: Optional[int] = None
+    sold_at: Optional[datetime] = None
+    validated_at: Optional[datetime] = None
+    canceled_at: Optional[datetime] = None
 
 class TicketResponse(TicketBase):
     id: int
-    # created_at: datetime
-    # event: EventResponse
+    user: Optional[UserResponse]
+    created_at: datetime
+    sold_at: Optional[datetime]
+    validated_at: Optional[datetime]
+    canceled_at: Optional[datetime]
 
     class Config:
         orm_mode = True
 
 class TicketSummary(BaseModel):
+    count: int
     event: EventResponse
     tickets: List[TicketResponse]
+    
 
     class Config:
         orm_mode = True
@@ -187,10 +195,10 @@ class OrderResponse(TicketSummary):
 
 # endregion
 
-# region Vote
+# region ValidationData
 
-class Vote(BaseModel):
+class ValidationData(BaseModel):
     event_id: int
-    dir: conint(le=1, ge=0)
+    reference: str
 
 # endregion

@@ -33,7 +33,6 @@ class Event(Base):
     date = Column(TIMESTAMP(timezone=True), nullable=False)
     time = Column(String, nullable=False)
     venue = Column(String, nullable=False)
-    ticket_limit = Column(Integer, nullable=True)
     organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
@@ -60,6 +59,9 @@ class Ticket(Base):
     event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
+    sold_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    validated_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    canceled_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     event = relationship("Event")
     user = relationship("User")
@@ -84,3 +86,23 @@ class Favourite(Base):
         "events.id", ondelete="CASCADE"), primary_key=True)
     
     event = relationship("Event")
+
+class TicketStatusHistory(Base):
+    __tablename__ = "ticket_status_history"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    reference = Column(String, nullable=False)
+    price = Column(Double, nullable=False)
+    status = Column(Enum(TicketStatus), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False, server_default=text("now()"))
+    sold_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    validated_at = Column(TIMESTAMP(timezone=True), nullable=True)
+    canceled_at = Column(TIMESTAMP(timezone=True), nullable=True)
+
+    event = relationship("Event")
+    user = relationship("User")
+    order = relationship("Order")

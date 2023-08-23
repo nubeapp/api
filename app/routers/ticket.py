@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from app.oauth2 import get_current_user
 from app.routers import event
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 
 from app import helpers, models
 from app.logger import get_custom_logger
@@ -50,14 +51,33 @@ async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: in
     return ticket_summaries
 
 @router.get("/{event_id}", response_model=TicketSummary)
-async def get_tickets_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    tickets = (
-        db.query(schemas.Ticket)
-        .filter(schemas.Ticket.event_id == event_id)
-        .all()
-    )
+async def get_tickets_by_event_id(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: int = Depends(get_current_user),
+    limit: int = None,
+    offset: int = None,
+    status: Optional[str] = None,
+    filter: Optional[str] = None
+):
+    query = db.query(schemas.Ticket).filter(schemas.Ticket.event_id == event_id)
+
+    if status is not None:
+        query = query.filter(schemas.Ticket.status == status)
+    if filter is not None:
+        query = query.filter(schemas.Ticket.reference.startswith(filter))
+
+    count = query.count()
+
+    if offset is not None:
+        query = query.offset(offset)
+    if limit is not None:
+        query = query.limit(limit)
+
+    tickets = query.all()
+
     event_by_id = await event.get_event_by_id(id=event_id, db=db)
-    return TicketSummary(event=event_by_id, tickets=tickets)
+    return TicketSummary(event=event_by_id, tickets=tickets, count=count)
 
 @router.get("/available/{event_id}", response_model=TicketSummary)
 async def get_tickets_available_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
@@ -83,6 +103,9 @@ async def get_tickets_by_user_id_event_id(event_id: int, db: Session = Depends(g
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=TicketSummary)
 async def create_tickets(ticket_data: CreateTicket, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    event_db = db.query(schemas.Event).filter(schemas.Event.id == ticket_data.event_id).first()
+    if not event_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Event {ticket_data.event_id} does not exist')
     tickets_gen = generate_tickets_by_event(
         event_id=ticket_data.event_id,
         price=ticket_data.price,
@@ -114,8 +137,6 @@ async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current
         
         # Check if the current user has reached the limit of tickets for one person
         user_tickets = await get_tickets_by_user_id_event_id(event_id=event_db.id, db=db, current_user=current_user)
-        logger.info(f"user_tickets: {len(user_tickets.tickets)}")
-        logger.info(f"quantity: {order.quantity}")
         if len(user_tickets.tickets) + order.quantity > TICKET_LIMIT:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Users can purchase a limit of 4 tickets')
         
@@ -145,7 +166,8 @@ async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current
                 status=TicketStatus.SOLD,
                 user_id=current_user.id,
                 order_id=new_order.id,
-                event_id=ticket.event_id
+                event_id=ticket.event_id,
+                sold_at=datetime.now(),
             )
             await update_ticket_by_id(ticket_id=ticket.id, updated_ticket=updated_ticket, db=db)
         
@@ -154,6 +176,37 @@ async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current
     except SQLAlchemyError as error:
         logger.error(error)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database Error")
+
+@router.put("/cancel/{ticket_id}", status_code=status.HTTP_200_OK)
+async def cancel(ticket_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    ticket = db.query(schemas.Ticket).filter(schemas.Ticket.id == ticket_id)
+    if not ticket.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No ticket found for id {id}")
+    if ticket.first().status == TicketStatus.CANCELED:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"The ticket is already canceled")
+    if ticket.first().status == TicketStatus.VALIDATED:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot cancel a validated ticket")
+    ticket.first().status = TicketStatus.CANCELED
+    ticket.first().canceled_at = datetime.now()
+    db.commit()
+    return {'message': 'ticket has been canceled'}
+
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_ticket_by_id(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    ticket = db.query(schemas.Ticket).filter(schemas.Ticket.id == id).first()
+    if not ticket:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No ticket found for id {id}")
+    db.delete(ticket)
+    db.commit()
+
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_tickets_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    tickets = db.query(schemas.Ticket).filter(schemas.Ticket.event_id == event_id).all()
+    if not tickets:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No tickets found for event_id {event_id}")
+    for ticket in tickets:
+        db.delete(ticket)
+    db.commit()
 
 async def update_ticket_by_id(ticket_id: int, updated_ticket: TicketRequest, db: Session = Depends(get_db)):
     ticket = db.query(schemas.Ticket).filter(schemas.Ticket.id == ticket_id)
@@ -164,6 +217,7 @@ async def update_ticket_by_id(ticket_id: int, updated_ticket: TicketRequest, db:
     db.commit()
 
 def generate_tickets_by_event(event_id: int, price: float, limit: int):
+
     references = helpers.generate_random_reference_list_by_limit(limit)
     tickets: List[TicketRequest] = []
     for reference in references:

@@ -1,9 +1,11 @@
+from collections import defaultdict
+from datetime import date
 from typing import List
 
 from app.oauth2 import get_current_user
 from ..models import EventRequest, EventResponse
 from .. import schemas
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from ..database import get_db
 from fastapi import status, HTTPException, Depends, APIRouter
 
@@ -14,8 +16,19 @@ router = APIRouter(
 
 @router.get("", response_model=List[EventResponse])
 async def get_all_events(db: Session = Depends(get_db)):
-    events = db.query(schemas.Event).order_by(schemas.Event.created_at).all()
+    today = date.today()
+    events = (
+        db.query(schemas.Event)
+        .filter(schemas.Event.date > today)
+        .order_by(schemas.Event.date, schemas.Event.time)
+        .all()
+    )
     return events
+
+# @router.get("", response_model=List[EventResponse])
+# async def get_all_events(db: Session = Depends(get_db)):
+#     events = db.query(schemas.Event).order_by(schemas.Event.date, schemas.Event.time).all()
+#     return events
 
 @router.get("/event/{id}", response_model=EventResponse)
 async def get_event_by_id(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):

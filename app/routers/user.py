@@ -25,6 +25,14 @@ async def get_user_by_email(email: EmailStr, db: Session = Depends(get_db)):
                             detail=f"User with email {email} was not found")
     return user
 
+@router.get("/id/{id}", response_model=UserResponse)
+async def get_user_by_email(id: int, db: Session = Depends(get_db)):
+    user = db.query(schemas.User).filter(schemas.User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User with id {id} was not found")
+    return user
+
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 async def create_user(user: UserRequest, db: Session = Depends(get_db)):
 
