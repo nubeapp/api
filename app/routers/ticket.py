@@ -1,4 +1,6 @@
 from typing import List, Optional
+from app.decorators import cancel_ticket_history
+from app.dependencies import insert_ticket_status_history
 
 from app.oauth2 import get_current_user
 from app.routers import event
@@ -14,6 +16,8 @@ from datetime import datetime
 from app import helpers, models
 from app.logger import get_custom_logger
 
+from fastapi import Query
+
 router = APIRouter(
     prefix="/tickets",
     tags=['Tickets']
@@ -21,8 +25,6 @@ router = APIRouter(
 
 TICKET_LIMIT: str = 4
 logger = get_custom_logger(__name__)
-
-from fastapi import Query
 
 @router.get("", response_model=List[TicketSummary])
 async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: int = Depends(get_current_user), limit: int = Query(10, ge=1), offset: int = Query(0, ge=0)):
@@ -46,7 +48,7 @@ async def get_tickets_by_user_id(db: Session = Depends(get_db), current_user: in
             .all()
         )
         
-        ticket_summaries.append(TicketSummary(event=event, tickets=tickets))
+        ticket_summaries.append(TicketSummary(event=event, tickets=tickets, count=len(tickets)))
     
     return ticket_summaries
 
@@ -88,7 +90,7 @@ async def get_tickets_available_by_event_id(event_id: int, db: Session = Depends
         .all()
     )
     event_by_id = await event.get_event_by_id(id=event_id, db=db)
-    return TicketSummary(event=event_by_id, tickets=tickets)
+    return TicketSummary(event=event_by_id, tickets=tickets, count=len(tickets))
 
 @router.get("/events/{event_id}", response_model=TicketSummary)
 async def get_tickets_by_user_id_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
@@ -99,7 +101,7 @@ async def get_tickets_by_user_id_event_id(event_id: int, db: Session = Depends(g
         .all()
     )
     event_by_id = await event.get_event_by_id(id=event_id, db=db)
-    return TicketSummary(event=event_by_id, tickets=tickets)
+    return TicketSummary(event=event_by_id, tickets=tickets, count=len(tickets))
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=TicketSummary)
 async def create_tickets(ticket_data: CreateTicket, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
@@ -119,9 +121,10 @@ async def create_tickets(ticket_data: CreateTicket, db: Session = Depends(get_db
         db.add(new_ticket)
         db.commit()
         db.refresh(new_ticket)
+        await insert_ticket_status_history(ticket_id=new_ticket.id, ticket_status=TicketStatus.AVAILABLE, db=db)
     
     event_by_id = await event.get_event_by_id(id=ticket_data.event_id, db=db)
-    return TicketSummary(event=event_by_id, tickets=new_tickets)
+    return TicketSummary(count=ticket_data.limit, event=event_by_id, tickets=new_tickets)
 
 @router.post("/buy", status_code=status.HTTP_201_CREATED, response_model=TicketSummary)
 async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
@@ -167,27 +170,28 @@ async def buy_ticket(order: OrderRequest, db: Session = Depends(get_db), current
                 user_id=current_user.id,
                 order_id=new_order.id,
                 event_id=ticket.event_id,
-                sold_at=datetime.now(),
             )
             await update_ticket_by_id(ticket_id=ticket.id, updated_ticket=updated_ticket, db=db)
+            await insert_ticket_status_history(ticket_id=ticket.id, ticket_status=TicketStatus.SOLD, db=db)
         
-        return TicketSummary(event=event_db, tickets=tickets)
+
+        return TicketSummary(event=event_db, tickets=tickets, count=len(tickets))
     
     except SQLAlchemyError as error:
         logger.error(error)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database Error")
 
 @router.put("/cancel/{ticket_id}", status_code=status.HTTP_200_OK)
+@cancel_ticket_history
 async def cancel(ticket_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-    ticket = db.query(schemas.Ticket).filter(schemas.Ticket.id == ticket_id)
-    if not ticket.first():
+    ticket = db.query(schemas.Ticket).filter(schemas.Ticket.id == ticket_id).first()
+    if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No ticket found for id {id}")
-    if ticket.first().status == TicketStatus.CANCELED:
+    if ticket.status == TicketStatus.CANCELED:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"The ticket is already canceled")
-    if ticket.first().status == TicketStatus.VALIDATED:
+    if ticket.status == TicketStatus.VALIDATED:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot cancel a validated ticket")
-    ticket.first().status = TicketStatus.CANCELED
-    ticket.first().canceled_at = datetime.now()
+    ticket.status = TicketStatus.CANCELED
     db.commit()
     return {'message': 'ticket has been canceled'}
 
@@ -199,7 +203,7 @@ async def delete_ticket_by_id(id: int, db: Session = Depends(get_db), current_us
     db.delete(ticket)
     db.commit()
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/event/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_tickets_by_event_id(event_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     tickets = db.query(schemas.Ticket).filter(schemas.Ticket.event_id == event_id).all()
     if not tickets:

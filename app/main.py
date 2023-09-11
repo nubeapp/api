@@ -4,7 +4,7 @@ from app.logger import get_custom_logger
 
 from . import schemas
 from .database import engine
-from .routers import favourite, user, code, email, event, auth, ticket, organization, order, validation
+from .routers import favourite, user, code, email, event, auth, ticket, organization, order, validation, ticket_status_history
 
 schemas.Base.metadata.create_all(bind=engine)
 
@@ -21,6 +21,7 @@ app.include_router(organization.router)
 app.include_router(order.router)
 app.include_router(favourite.router)
 app.include_router(validation.router)
+app.include_router(ticket_status_history.router)
 
 
 @app.get("/")

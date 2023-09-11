@@ -146,23 +146,17 @@ class TicketRequest(TicketBase):
     event_id: int
     order_id: Optional[int] = None
     user_id: Optional[int] = None
-    sold_at: Optional[datetime] = None
-    validated_at: Optional[datetime] = None
-    canceled_at: Optional[datetime] = None
 
 class TicketResponse(TicketBase):
     id: int
     user: Optional[UserResponse]
     created_at: datetime
-    sold_at: Optional[datetime]
-    validated_at: Optional[datetime]
-    canceled_at: Optional[datetime]
 
     class Config:
         orm_mode = True
 
 class TicketSummary(BaseModel):
-    count: int
+    count: Optional[int]
     event: EventResponse
     tickets: List[TicketResponse]
     
@@ -174,6 +168,19 @@ class CreateTicket(BaseModel):
     event_id: int
     price: float
     limit: int
+
+# endregion
+
+# region TicketStatusHistory
+
+class TicketStatusHistoryResponse(BaseModel):
+    id: int
+    ticket_id: int
+    status: TicketStatus
+    status_at: datetime
+
+    class Config:
+        orm_mode = True
 
 # endregion
 

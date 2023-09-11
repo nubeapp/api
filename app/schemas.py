@@ -59,9 +59,6 @@ class Ticket(Base):
     event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
-    sold_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    validated_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    canceled_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     event = relationship("Event")
     user = relationship("User")
@@ -91,18 +88,6 @@ class TicketStatusHistory(Base):
     __tablename__ = "ticket_status_history"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    reference = Column(String, nullable=False)
-    price = Column(Double, nullable=False)
+    ticket_id = Column(Integer, ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False)
     status = Column(Enum(TicketStatus), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=True)
-    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True),
-                        nullable=False, server_default=text("now()"))
-    sold_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    validated_at = Column(TIMESTAMP(timezone=True), nullable=True)
-    canceled_at = Column(TIMESTAMP(timezone=True), nullable=True)
-
-    event = relationship("Event")
-    user = relationship("User")
-    order = relationship("Order")
+    status_at = Column(TIMESTAMP(timezone=True), nullable=False)
