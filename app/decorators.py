@@ -1,9 +1,10 @@
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import schemas
+from app.schemas.ticket import Ticket
 from app.database import get_db
 from app.dependencies import insert_ticket_status_history
-from app.models import TicketStatus, ValidationData
+from app.models.ticket import TicketStatus
+from app.models.validation_data import ValidationData
 from functools import wraps
 
 from app.oauth2 import get_current_user
@@ -21,7 +22,7 @@ def insert_validate_ticket_status_history():
     def decorator(fn):
         @wraps(fn)
         async def wrapper(validation_data: ValidationData, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
-            ticket_sold = db.query(schemas.Ticket).filter(schemas.Ticket.event_id == validation_data.event_id).filter(schemas.Ticket.reference == validation_data.reference).filter(schemas.Ticket.status == TicketStatus.SOLD).first()
+            ticket_sold = db.query(Ticket).filter(Ticket.event_id == validation_data.event_id).filter(Ticket.reference == validation_data.reference).filter(Ticket.status == TicketStatus.SOLD).first()
 
             if not ticket_sold:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT,
