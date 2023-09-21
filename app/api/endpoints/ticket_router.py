@@ -5,11 +5,11 @@ from app.decorators import cancel_ticket_history
 
 from app.database import get_db
 from app.oauth2 import get_current_user
-from app.models.ticket import (
+from app.api.models.ticket import (
     TicketSummary,
     CreateTicket,
 )
-from app.models.order import OrderRequest
+from app.api.models.order import OrderRequest
 from app.core.services.ticket_service import TicketService
 
 router = APIRouter(

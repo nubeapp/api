@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.models.event import EventRequest, EventResponse
+from app.api.models.event import EventRequest, EventResponse
 from app.core.repositories.event_repository import EventRepository
 
 class EventService:

@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from app.core.services.code_service import CodeService
 from app.database import get_db
-from app.models.code import CodeRequest, CodeResponse
+from app.api.models.code import CodeRequest, CodeResponse
 from sqlalchemy.orm import Session
 from fastapi import status, HTTPException, Depends, APIRouter
 

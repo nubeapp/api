@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.models.email_data import EmailDataRequest
+from app.api.models.email_data import EmailDataRequest
 from app.core.services.email_service import EmailService
 
 router = APIRouter(

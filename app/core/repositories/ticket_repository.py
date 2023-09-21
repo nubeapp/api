@@ -3,12 +3,12 @@ from typing import List, Optional
 from fastapi import Depends, HTTPException, status
 from app import helpers, logger
 from app.dependencies import insert_ticket_status_history
-from app.models.ticket import TicketStatus
+from app.api.models.ticket import TicketStatus
 from app.oauth2 import get_current_user
 from app.schemas.ticket import Ticket
 from app.schemas.event import Event
-from app.models.ticket import TicketSummary, CreateTicket, TicketRequest, TicketResponse
-from app.models.order import OrderRequest
+from app.api.models.ticket import TicketSummary, CreateTicket, TicketRequest, TicketResponse
+from app.api.models.order import OrderRequest
 from sqlalchemy.exc import SQLAlchemyError
 from app.core.repositories.order_repository import OrderRepository
 from app.core.services.event_service import EventService

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 # from app.core.services.validation_service import ValidationService
 from app.dependencies import get_db
-from app.models.validation_data import ValidationData
+from app.api.models.validation_data import ValidationData
 from app.oauth2 import get_current_user
 from app.decorators import validate_ticket_history
 from fastapi import status

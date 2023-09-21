@@ -1,5 +1,5 @@
 from app.database import Base
-from app.models.ticket import TicketStatus
+from app.api.models.ticket import TicketStatus
 from sqlalchemy import Column, String, Integer, ForeignKey, Double, Enum
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text

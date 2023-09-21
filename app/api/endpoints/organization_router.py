@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.oauth2 import get_current_user
-from app.models.organization import OrganizationRequest, OrganizationResponse
+from app.api.models.organization import OrganizationRequest, OrganizationResponse
 from app.core.services.organization_service import OrganizationService
 
 router = APIRouter(

@@ -3,7 +3,7 @@
 from typing import List
 from sqlalchemy.orm import Session
 
-from app.models.order import OrderResponse
+from app.api.models.order import OrderResponse
 from app.schemas.order import Order
 from app.schemas.ticket import Ticket
 from app.schemas.event import Event

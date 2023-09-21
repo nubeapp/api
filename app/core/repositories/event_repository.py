@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
-from app.models.event import EventRequest
+from app.api.models.event import EventRequest
 from app.schemas.event import Event
 from app.schemas.favourite import Favourite
 from datetime import date

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.models.ticket import TicketSummary, CreateTicket
-from app.models.order import OrderRequest
+from app.api.models.ticket import TicketSummary, CreateTicket
+from app.api.models.order import OrderRequest
 from app.core.repositories.ticket_repository import TicketRepository
 
 class TicketService:

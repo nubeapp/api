@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.services.user_service import UserService
 from app.core.repositories.user_repository import UserRepository
 from app.database import get_db
-from app.models.user import UserResponse, UserRequest, EmailStr
+from app.api.models.user import UserResponse, UserRequest, EmailStr
 from app.schemas.user import User
 from app.utils import check_404
 

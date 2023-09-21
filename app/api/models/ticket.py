@@ -3,9 +3,9 @@ from typing import Optional
 from pydantic import BaseModel
 from typing import List
 from enum import Enum
-from app.models.event import EventResponse
+from app.api.models.event import EventResponse
 
-from app.models.user import UserResponse
+from app.api.models.user import UserResponse
 
 class TicketStatus(Enum):
     AVAILABLE = 'AVAILABLE'

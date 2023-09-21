@@ -6,7 +6,7 @@ from app.core.services.auth_service import AuthService
 from app.core.repositories.auth_repository import AuthRepository
 from app.database import get_db
 
-from app.models.token import Token
+from app.api.models.token import Token
 
 router = APIRouter(tags=['Authentication'])
 

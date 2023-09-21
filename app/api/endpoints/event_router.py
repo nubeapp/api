@@ -4,7 +4,7 @@ from app.oauth2 import get_current_user
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.core.services.event_service import EventService
-from app.models.event import EventRequest, EventResponse
+from app.api.models.event import EventRequest, EventResponse
 
 router = APIRouter(
     prefix="/events",

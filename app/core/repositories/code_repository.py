@@ -1,8 +1,6 @@
-# core/repositories/code_repository.py
-
 from sqlalchemy.orm import Session
 from app.schemas.code import Code
-from app.models.code import CodeRequest
+from app.api.models.code import CodeRequest
 from pydantic import EmailStr
 
 class CodeRepository:

@@ -7,7 +7,7 @@ from app.core.services.order_service import OrderService
 from app.database import get_db
 from app.oauth2 import get_current_user
 from typing import List
-from app.models.order import OrderResponse
+from app.api.models.order import OrderResponse
 
 router = APIRouter(
     prefix="/orders",

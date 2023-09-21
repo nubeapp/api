@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
-from app.models.ticket_status_history import TicketStatusHistoryResponse
+from app.api.models.ticket_status_history import TicketStatusHistoryResponse
 from app.schemas.ticket_status_history import TicketStatusHistory
 
 class TicketStatusHistoryRepository:

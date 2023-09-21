@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.schemas.ticket import Ticket
 from app.database import get_db
 from app.dependencies import insert_ticket_status_history
-from app.models.ticket import TicketStatus
-from app.models.validation_data import ValidationData
+from app.api.models.ticket import TicketStatus
+from app.api.models.validation_data import ValidationData
 from functools import wraps
 
 from app.oauth2 import get_current_user

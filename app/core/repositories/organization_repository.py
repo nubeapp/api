@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
-from app.models.organization import OrganizationRequest, OrganizationResponse
+from app.api.models.organization import OrganizationRequest, OrganizationResponse
 from app.schemas.organization import Organization
 
 class OrganizationRepository:

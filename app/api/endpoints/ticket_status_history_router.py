@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.oauth2 import get_current_user
-from app.models.ticket_status_history import TicketStatusHistoryResponse
+from app.api.models.ticket_status_history import TicketStatusHistoryResponse
 from app.core.services.ticket_status_history_service import TicketStatusHistoryService
 
 router = APIRouter(

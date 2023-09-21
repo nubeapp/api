@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.models.ticket import TicketStatus
-from app.models.validation_data import ValidationData
+from app.api.models.ticket import TicketStatus
+from app.api.models.validation_data import ValidationData
 from app.schemas.ticket import Ticket
 from fastapi import HTTPException, status
 

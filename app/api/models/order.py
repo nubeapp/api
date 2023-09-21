@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.models.ticket import TicketSummary
+from app.api.models.ticket import TicketSummary
 
 class OrderBase(BaseModel):
     pass

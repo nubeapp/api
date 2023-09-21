@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schemas.user import User
-from app.models.user import UserRequest, EmailStr
+from app.api.models.user import UserRequest, EmailStr
 
 class UserRepository:
     @staticmethod

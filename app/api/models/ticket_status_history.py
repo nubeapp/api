@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.models.ticket import TicketStatus
+from app.api.models.ticket import TicketStatus
 
 class TicketStatusHistoryResponse(BaseModel):
     id: int

@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from app.core.repositories.order_repository import OrderRepository
-from app.models.order import OrderResponse
+from app.api.models.order import OrderResponse
 from app.schemas.order import Order
 
 class OrderService:

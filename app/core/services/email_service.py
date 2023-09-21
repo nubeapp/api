@@ -1,6 +1,6 @@
 import requests
 from app.config import settings
-from app.models.email_data import EmailDataRequest
+from app.api.models.email_data import EmailDataRequest
 
 class EmailService:
     @staticmethod

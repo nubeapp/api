@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.core.repositories.code_repository import CodeRepository
-from app.models.code import CodeRequest
+from app.api.models.code import CodeRequest
 from pydantic import EmailStr
 
 class CodeService:
